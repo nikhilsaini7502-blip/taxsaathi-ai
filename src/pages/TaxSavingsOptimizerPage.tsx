@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { motion } from 'framer-motion';
 import { useMode } from '../context/ModeContext';
 import type { TaxInputs } from '../lib/taxEngine';
 import {
@@ -12,6 +13,7 @@ import {
   potentialSectionSave,
   type OptimizerSectionId,
 } from '../lib/taxEngine';
+import { cardShell, progressFill, progressTrack } from '../lib/uiTokens';
 
 type Props = {
   inputs: TaxInputs;
@@ -93,9 +95,7 @@ export function TaxSavingsOptimizerPage({ inputs, onChange }: Props) {
   const taxAfter = oldRegime(fullyOptimizedInputs(inputs)).totalTax;
   const totalSave = Math.max(0, taxBefore - taxAfter);
 
-  const shell = isGenZ
-    ? 'rounded-3xl border-2 border-white/50 bg-white/80 shadow-xl shadow-fuchsia-500/10 backdrop-blur-xl'
-    : 'rounded-2xl border border-slate-200/80 bg-white shadow-lg shadow-slate-200/40';
+  const shell = cardShell(isGenZ);
 
   const recs = isGenZ
     ? [
@@ -135,11 +135,14 @@ export function TaxSavingsOptimizerPage({ inputs, onChange }: Props) {
 
   return (
     <div className="space-y-8">
-      <div
+      <motion.div
+        initial={{ opacity: 0, y: 14 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
         className={
           isGenZ
-            ? 'grid gap-4 rounded-3xl border-2 border-white/50 bg-gradient-to-br from-violet-600/90 to-fuchsia-600/90 p-6 text-white shadow-xl shadow-violet-500/20 sm:grid-cols-3'
-            : 'grid gap-4 rounded-2xl border border-blue-100 bg-gradient-to-br from-slate-900 via-blue-900 to-blue-800 p-6 text-white shadow-xl sm:grid-cols-3'
+            ? 'grid gap-4 rounded-2xl border border-white/20 bg-gradient-to-br from-violet-600/95 via-fuchsia-600/90 to-indigo-600/90 p-6 text-white shadow-xl shadow-violet-500/25 backdrop-blur-sm sm:grid-cols-3'
+            : 'grid gap-4 rounded-2xl border border-white/10 bg-gradient-to-br from-slate-900 via-indigo-900 to-blue-800 p-6 text-white shadow-xl shadow-indigo-500/20 backdrop-blur-sm sm:grid-cols-3'
         }
       >
         <div>
@@ -169,7 +172,7 @@ export function TaxSavingsOptimizerPage({ inputs, onChange }: Props) {
             {isGenZ ? 'Before − after, approx — IT Dept ko final word.' : 'Difference between current and fully optimised demo scenario.'}
           </p>
         </div>
-      </div>
+      </motion.div>
 
       <div className="space-y-5">
         {sections.map((s) => {
@@ -177,7 +180,14 @@ export function TaxSavingsOptimizerPage({ inputs, onChange }: Props) {
           const pct = s.cap > 0 ? Math.min(100, Math.round((s.used / s.cap) * 100)) : 0;
           const save = potentialSectionSave(inputs, s.id);
           return (
-            <section key={s.id} className={shell + ' p-5 sm:p-6'}>
+            <motion.section
+              key={s.id}
+              className={shell + ' p-5 sm:p-6'}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.35 }}
+              whileHover={{ y: -2 }}
+            >
               <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                 <div>
                   <h3 className={isGenZ ? 'font-[family-name:var(--font-display)] text-lg font-bold text-violet-950' : 'text-lg font-semibold text-slate-800'}>
@@ -205,14 +215,12 @@ export function TaxSavingsOptimizerPage({ inputs, onChange }: Props) {
                     {inr(s.used)} / {inr(s.cap)} ({pct}%)
                   </span>
                 </div>
-                <div className={isGenZ ? 'h-3 overflow-hidden rounded-full bg-violet-200/70' : 'h-2.5 overflow-hidden rounded-full bg-slate-200'}>
-                  <div
-                    className={
-                      isGenZ
-                        ? 'h-full rounded-full bg-gradient-to-r from-fuchsia-500 via-violet-500 to-indigo-500 transition-[width] duration-500'
-                        : 'h-full rounded-full bg-blue-600 transition-[width] duration-500'
-                    }
-                    style={{ width: `${pct}%` }}
+                <div className={progressTrack(isGenZ)}>
+                  <motion.div
+                    className={progressFill(isGenZ)}
+                    initial={{ width: 0 }}
+                    animate={{ width: `${pct}%` }}
+                    transition={{ duration: 0.75, ease: [0.22, 1, 0.36, 1] }}
                   />
                 </div>
               </div>
@@ -226,38 +234,39 @@ export function TaxSavingsOptimizerPage({ inputs, onChange }: Props) {
                   onChange={(e) => onChange({ [s.usedKey]: parseNum(e.target.value) } as Partial<TaxInputs>)}
                   className={
                     isGenZ
-                      ? 'mt-2 w-full rounded-2xl border-2 border-violet-200 bg-white/90 px-4 py-2.5 font-mono text-sm focus:border-fuchsia-400 focus:outline-none focus:ring-2 focus:ring-fuchsia-300/40'
-                      : 'mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 font-mono text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100'
+                      ? 'mt-2 w-full rounded-2xl border border-white/50 bg-white/90 px-4 py-2.5 font-mono text-sm shadow-sm transition-all focus:scale-[1.01] focus:border-fuchsia-400 focus:outline-none focus:ring-2 focus:ring-fuchsia-300/45'
+                      : 'mt-2 w-full rounded-2xl border border-white/50 bg-white/90 px-4 py-2.5 font-mono text-sm shadow-sm transition-all focus:scale-[1.01] focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-400/40'
                   }
                 />
               </label>
-            </section>
+            </motion.section>
           );
         })}
       </div>
 
       <div>
         <h2 className={isGenZ ? 'font-[family-name:var(--font-display)] text-xl font-bold text-violet-950' : 'text-xl font-semibold text-slate-800'}>
-          {isGenZ ? 'AI playbook — 3 step cards' : 'AI recommendations'}
+          {isGenZ ? '🤖 AI playbook — 3 step cards' : 'AI recommendations'}
         </h2>
         <p className={isGenZ ? 'mt-1 text-sm text-violet-800/85' : 'mt-1 text-sm text-slate-500'}>
           {isGenZ ? 'Generic game plan — CA se fact-check zaroori.' : 'General guidance only; validate with a qualified advisor.'}
         </p>
         <ol className="mt-6 grid gap-4 md:grid-cols-3">
           {recs.map((r) => (
-            <li
+            <motion.li
               key={r.step}
               className={
                 isGenZ
-                  ? 'flex flex-col rounded-3xl border-2 border-amber-200/80 bg-gradient-to-b from-amber-50 to-white p-5 shadow-md'
-                  : 'flex flex-col rounded-2xl border border-slate-200 bg-slate-50/80 p-5 shadow-sm'
+                  ? 'flex flex-col rounded-2xl border border-amber-200/60 bg-gradient-to-b from-amber-50/95 to-white/90 p-5 shadow-md backdrop-blur-sm transition-all hover:-translate-y-1 hover:shadow-xl'
+                  : 'flex flex-col rounded-2xl border border-white/40 bg-white/70 p-5 shadow-md backdrop-blur-md transition-all hover:-translate-y-1 hover:shadow-xl'
               }
+              whileHover={{ scale: 1.01 }}
             >
               <span
                 className={
                   isGenZ
-                    ? 'inline-flex h-9 w-9 items-center justify-center rounded-2xl bg-gradient-to-br from-fuchsia-500 to-violet-600 text-sm font-extrabold text-white'
-                    : 'inline-flex h-9 w-9 items-center justify-center rounded-lg bg-blue-600 text-sm font-bold text-white'
+                    ? 'inline-flex h-9 w-9 items-center justify-center rounded-2xl bg-gradient-to-br from-fuchsia-500 to-violet-600 text-sm font-extrabold text-white shadow-md'
+                    : 'inline-flex h-9 w-9 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-blue-600 text-sm font-bold text-white shadow-md'
                 }
               >
                 {r.step}
@@ -271,7 +280,7 @@ export function TaxSavingsOptimizerPage({ inputs, onChange }: Props) {
               <p className={isGenZ ? 'mt-4 text-[10px] font-bold uppercase tracking-wider text-fuchsia-600' : 'mt-4 text-[10px] font-semibold uppercase tracking-wider text-blue-600'}>
                 TaxSaathi AI
               </p>
-            </li>
+            </motion.li>
           ))}
         </ol>
       </div>

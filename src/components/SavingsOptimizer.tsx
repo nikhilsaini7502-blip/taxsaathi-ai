@@ -1,7 +1,9 @@
 import { useMemo } from 'react';
+import { motion } from 'framer-motion';
 import type { TaxInputs } from '../lib/taxEngine';
 import { CAP_80C, deductionBuckets } from '../lib/taxEngine';
 import { useMode } from '../context/ModeContext';
+import { cardShell, progressFill, progressTrack } from '../lib/uiTokens';
 
 type Props = { inputs: TaxInputs };
 
@@ -34,55 +36,55 @@ export function SavingsOptimizer({ inputs }: Props) {
     tips.push('Consider Section 80D and NPS (80CCD(1B)) if applicable to your profile.');
   }
 
-  const shell = isGenZ
-    ? 'rounded-3xl border-2 border-white/50 bg-white/75 p-6 shadow-xl shadow-violet-500/10 backdrop-blur-xl'
-    : 'rounded-2xl border border-slate-200/80 bg-white p-6 shadow-lg shadow-slate-200/40';
+  const shell = cardShell(isGenZ);
 
   return (
-    <section className={shell}>
+    <motion.section
+      className={shell}
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.42, ease: [0.22, 1, 0.36, 1], delay: 0.05 }}
+    >
       <h2
         className={
           isGenZ
-            ? 'font-[family-name:var(--font-display)] text-xl font-bold text-violet-950'
+            ? 'font-[family-name:var(--font-display)] text-xl font-bold text-slate-900'
             : 'text-xl font-semibold text-slate-800'
         }
       >
-        {isGenZ ? 'Savings optimizer — FOMO for deductions' : 'Deduction utilization'}
+        {isGenZ ? '📊 Deduction utilization' : 'Deduction utilization'}
       </h2>
-      <p className={isGenZ ? 'mt-1 text-sm text-violet-800/85' : 'mt-1 text-sm text-slate-500'}>
+      <p className={isGenZ ? 'mt-1 text-sm text-violet-900/80' : 'mt-1 text-sm text-slate-600'}>
         {isGenZ
           ? 'Green bar = use ho gaya; gap = abhi bhi party bachi hai.'
           : 'Progress bars show utilization against indicative caps for this model.'}
       </p>
 
       <ul className="mt-6 space-y-5">
-        {buckets.map((b) => {
+        {buckets.map((b, i) => {
           const pct = Math.min(100, Math.round((b.used / b.cap) * 100));
           const unused = Math.max(0, b.cap - b.used);
           return (
-            <li key={b.id}>
+            <motion.li
+              key={b.id}
+              initial={{ opacity: 0, x: -8 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.06 * i, duration: 0.35 }}
+            >
               <div className="flex items-baseline justify-between gap-2">
                 <span className={isGenZ ? 'text-sm font-semibold text-violet-900' : 'text-sm font-medium text-slate-700'}>
                   {b.label}
                 </span>
-                <span className={isGenZ ? 'text-xs font-medium text-violet-700' : 'text-xs text-slate-500'}>
+                <span className={isGenZ ? 'text-xs font-medium text-violet-800' : 'text-xs text-slate-500'}>
                   {inr(b.used)} / {inr(b.cap)}
                 </span>
               </div>
-              <div
-                className={
-                  isGenZ
-                    ? 'mt-2 h-3 overflow-hidden rounded-full bg-violet-200/60'
-                    : 'mt-2 h-2.5 overflow-hidden rounded-full bg-slate-200'
-                }
-              >
-                <div
-                  className={
-                    isGenZ
-                      ? 'h-full rounded-full bg-gradient-to-r from-fuchsia-500 via-violet-500 to-amber-400 transition-[width] duration-500'
-                      : 'h-full rounded-full bg-blue-600 transition-[width] duration-500'
-                  }
-                  style={{ width: `${pct}%` }}
+              <div className={`mt-2 ${progressTrack(isGenZ)}`}>
+                <motion.div
+                  className={progressFill(isGenZ)}
+                  initial={{ width: 0 }}
+                  animate={{ width: `${pct}%` }}
+                  transition={{ duration: 0.85, ease: [0.22, 1, 0.36, 1], delay: 0.08 + i * 0.04 }}
                 />
               </div>
               <p className={isGenZ ? 'mt-1.5 text-xs text-violet-800/80' : 'mt-1.5 text-xs text-slate-500'}>
@@ -94,27 +96,34 @@ export function SavingsOptimizer({ inputs }: Props) {
                     ? `Unused ~ ${inr(unused)} — abhi optimize ho sakta hai.`
                     : `Unused headroom ~ ${inr(unused)}.`}
               </p>
-            </li>
+            </motion.li>
           );
         })}
       </ul>
 
-      <div
+      <motion.div
         className={
           isGenZ
-            ? 'mt-6 rounded-2xl border border-amber-300/60 bg-amber-50/90 px-4 py-4'
-            : 'mt-6 rounded-xl border border-blue-100 bg-blue-50/50 px-4 py-4'
+            ? 'mt-6 rounded-2xl border border-amber-300/50 bg-amber-50/80 px-4 py-4 shadow-md backdrop-blur-sm'
+            : 'mt-6 rounded-2xl border border-indigo-100/80 bg-indigo-50/50 px-4 py-4 shadow-md backdrop-blur-sm'
         }
+        whileHover={{ scale: 1.005 }}
       >
-        <p className={isGenZ ? 'text-sm font-bold text-amber-950' : 'text-sm font-semibold text-blue-900'}>
+        <p className={isGenZ ? 'text-sm font-bold text-amber-950' : 'text-sm font-semibold text-indigo-900'}>
           {isGenZ ? 'Quick roasts / tips' : 'Additional considerations'}
         </p>
-        <ul className={isGenZ ? 'mt-2 list-inside list-disc space-y-1 text-sm text-amber-950/90' : 'mt-2 list-inside list-disc space-y-1 text-sm text-slate-600'}>
+        <ul
+          className={
+            isGenZ
+              ? 'mt-2 list-inside list-disc space-y-1 text-sm text-amber-950/90'
+              : 'mt-2 list-inside list-disc space-y-1 text-sm text-slate-600'
+          }
+        >
           {tips.map((t, i) => (
             <li key={i}>{t}</li>
           ))}
         </ul>
-      </div>
-    </section>
+      </motion.div>
+    </motion.section>
   );
 }

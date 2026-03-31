@@ -42,4 +42,9 @@ body {
     opacity: 1;
     transform: none;
   }
+
+  .animate-pulse {
+    animation: none;
+    opacity: 0.85;
+  }
 }
